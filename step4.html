@@ -1,0 +1,39 @@
+<script src="_.js"></script>
+
+<script>
+const add = (a, b) => a + b;
+var list = range(4);
+// log(list);
+// log( _reduce(add, list) )
+</script>
+
+<script>
+var list = L.range(4);
+</script>
+<script>
+function test(name, time, func){
+    console.time(name);
+    while (time--) func();
+    console.timeEnd(name);
+}
+
+// test('range', 10, () => _reduce(add, range(1000000)));
+// test('L.range', 10, () => _reduce(add, L.range(1000000)));
+console.clear();
+</script>
+
+<script> 
+let arr = range(100);
+// console.log(take(5, arr));
+// console.log(take(5, L.range(100)));
+</script>
+
+<script>
+let lmap = L.map(a => a + 10, [1,2,3])
+log(lmap)
+log(...lmap)
+
+let lfilter = L.filter(a => a %2, [1,2,3,4])
+log(lfilter)
+log(...lfilter)
+</script>

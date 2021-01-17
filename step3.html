@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+<script>
+    const log = console.log;
+</script>
+<script src="_.js"></script>
+<script>
+    const products = [
+        {name : '반팔티', price: 15000, quantity: 1, isChecked: true},
+        {name : '긴팔티', price: 20000, quantity: 2, isChecked: false},
+        {name : '나시', price: 10000, quantity: 3, isChecked: true},
+        {name : '핸드폰케이스', price: 15000, quantity: 4, isChecked: false},
+        {name : '후드티', price: 25000, quantity: 5, isChecked: true}
+    ];
+</script>
+
+# 메롱
+
+<div id="cart">
+
+</div>
+
+<script>
+
+// let names = products.map(function(product){ return product.name });
+// log(names)
+
+let names = _map(products, function(product) { return product.name });
+log(names);
+let names2 = _map(products, product => product.name );
+log(names2);
+
+let prices = _map(products, function(product) { return product.price });
+log(prices);
+let prices2 = _map(products, product => product.price);
+log(prices2);
+
+const all = document.querySelectorAll("*")
+log(all)
+log(_map(all, val => val));
+</script>
+
+<script>
+let map2 = new Map();
+map2.set('a', 10)
+map2.set('b', 20)
+log( _map(map2, ([k, a]) => [k, a * 2]) );
+</script>
+
+<script>
+console.clear()
+let under20000 = filter(products, (p) => p.price < 20000);
+log(under20000);
+
+let num = filter([1,2,3,4,5], (v) => v == 3 )
+log ( num )
+</script>
+
+<script>
+console.clear()
+let arr1 = [1,2,3,4,5];
+
+log( _reduce((a, b) => a + b, arr1, 0) );
+log( _reduce((a, b) => a + b, arr1) );
+</script>
+
+<script>
+let arr = [0,
+    a => a + 1,
+    a => a + 10,
+    a => a + 100,
+console.log]
+go(
+    0,
+    a => a + 1,
+    a => a * a,
+    console.log
+    );
+
+</script>
+
+<script>
+const f = pipe (
+    (a, b) => a + b + 1,
+    a => a + 10,
+    a => a + 100);
+
+console.log( f(1, 1) );
+</script>
+
+<script>
+const add = (a, b) => a + b;
+go(
+    products,
+    filterCur( p => p.price <= 15000 ),
+    mapCur( p => p.price ),
+    reduceCur( add ),
+    log
+)
+</script>
+
+
+<script>
+// const add = (a, b) => a + b;
+const func = curry( (f, iter) => go(
+    iter,
+    mapCur(f),
+    reduceCur(add)));
+
+
+go(
+    products,
+    mapCur(p => p.quantity),
+    reduceCur(add),
+    log
+)
+
+go(
+    products,
+    mapCur(p => p.quantity * p.price),
+    reduceCur(add),
+    log
+)
+
+const sumFunc = func(p => p.quantity);
+const sumFunc2 = func(p => p.quantity * p.price);
+
+log( sumFunc(products) );
+
+document.querySelector("#cart").innerHTML = `
+    <table>
+        <tr>
+            <th></th>
+            <th>상품 이름</th>
+            <th>가격</th>
+            <th>수량</th>
+            <th>총 가격</th>
+        </tr>
+        ${
+            go(
+                products,
+                func( p => `
+                    <tr>
+                        <td><input class="checkBoxC" type="checkbox" ${p.isChecked ? 'checked' : ''}></td>
+                        <td>${p.name}</td>
+                        <td>${p.price}</td>
+                        <td><input type="number" value="${p.quantity}"></td>
+                        <td>${p.price * p.quantity}</td>
+                    </tr>
+                `)
+            )
+        }
+        <tr>
+            <td colspan="2">합계</td>
+            <td class="result1">${sumFunc(filter(products, p => p.isChecked))}</td>
+            <td class="result2">${sumFunc2(filter(products, p => p.isChecked))}</td>
+        </tr>
+    </table>
+`;
+
+</script>
+</body>
+</html>

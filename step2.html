@@ -1,0 +1,53 @@
+<script> 
+const log = console.log;
+</script>
+<script src="_.js"></script>
+<script>
+// 제네레이터/이터레이터
+// 제네레이터 : 이터레이터이면서 이터러블을 생성하는 함수
+let iter = gen();
+log( iter[Symbol.iterator] );
+log( iter.next() );
+log( iter.next() );
+log( iter.next() );
+log( iter.next() );
+
+for ( const v of gen() ) log(v);
+</script>
+
+<script>
+function *infinity(i = 0){
+    while(true) yield i++;
+}
+function *limit(l, iter){
+    for ( const a of iter ){
+        yield a;
+        if ( l == a) return;
+    }
+}
+function *obbs(n){
+    for (const a of limit(n, infinity(1))){
+        if ( a % 2 ) yield a;
+    }
+}
+let iter2 = obbs(12);
+log( iter2.next() );
+log( iter2.next() );
+log( iter2.next() );
+log( iter2.next() );
+log( iter2.next() );
+log( iter2.next() );
+log( iter2.next() );
+log( iter2.next() );
+
+let iter3 = infinity();
+</script>
+
+<script>
+log(...obbs(10), ...obbs(10))
+
+const [head, ...tail] = obbs(15);
+log("head - ", head);
+log(tail);
+
+</script>

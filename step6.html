@@ -1,0 +1,33 @@
+<script src="_.js"></script>
+
+<script>
+function add10(a, callback){
+    setTimeout(() => callback(a + 10), 1000);
+};
+
+// add10(10, res => log(res));
+//callback
+
+function add20(a){
+    return new Promise(resolve => setTimeout(() => resolve(a + 20), 1000))
+}
+
+// add20(10)
+// .then(add20)
+// .then(add20)
+// .then(add20)
+// .then(log)
+//Promise
+</script>
+<script>
+let delay100 = a => new Promise(resolve => setTimeout(resolve(a), 100));
+// let go1 = (a, f) => f(a);
+let go1 = (a, f) => a instanceof Promise ? a.then(f) : f(a);
+let add5 = a => a + 5;
+
+var result = go1(10, add5)
+log( result );
+var result2 = go1(delay100(10), add5)
+result2.then(log)
+
+</script>

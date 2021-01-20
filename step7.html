@@ -1,0 +1,12 @@
+<script src="_.js"></script>
+<script>
+
+go(Promise.resolve(1),
+    a => a + 100,
+    a => Promise.resolve(a + 100),
+    a => a + 200,
+    a => a + 300,
+    log
+)
+
+</script>

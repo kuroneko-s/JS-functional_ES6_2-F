@@ -51,9 +51,33 @@ const _reduce = (func, total, iter) => {
     return total;
 }
 
-const go = (...args) => _reduce( (arg, f) => f(arg), args );
-const pipe = (f, ...fs) => (...a) => go(f(...a), ...fs);
 const curry = f => (a, ..._) => _.length ? f(a, ..._) : (..._) => f(a, ..._);
+
+const isPromise = (a, f) => a instanceof Promise ? a.then(f) : f(a);
+
+const reduce = curry((func, total, iter) => {
+    if(!iter){
+        iter = total[Symbol.iterator]();
+        total = iter.next().value;
+    }else {
+        iter = iter[Symbol.iterator]();
+    }
+
+    return isPromise(total, function recur(total) {
+        let cur;
+        while(!(cur = iter.next()).done){
+            const t = cur.value;
+            total = func(total, t);
+            if ( total instanceof Promise ) return total.then(recur);
+        }
+
+        return total;
+    });
+});
+
+const go = (...args) => reduce( (arg, f) => f(arg), args );
+const pipe = (f, ...fs) => (...a) => go(f(...a), ...fs);
+
 
 const mapCur = curry((f, iter) => {
     let res = [];

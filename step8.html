@@ -1,0 +1,8 @@
+<script src="_.js"></script>
+<script>
+    
+Promise.resolve(1).then(console.log, e => console.log("error - ", e))
+Promise.reject(1).then(console.log, e => console.log("error - ", e))
+Promise.reject(1).then(console.log).catch(e => console.log('error - ', e))
+
+</script>

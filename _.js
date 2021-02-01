@@ -55,22 +55,26 @@ const curry = f => (a, ..._) => _.length ? f(a, ..._) : (..._) => f(a, ..._);
 
 const isPromise = (a, f) => a instanceof Promise ? a.then(f) : f(a);
 
-const reduce = curry((func, total, iter) => {
-    if(!iter){
-        iter = total[Symbol.iterator]();
-        total = iter.next().value;
-    }else {
-        iter = iter[Symbol.iterator]();
-    }
+//then의 두번째 인자에 catch처럼 동작 가능한 값을 넣을 수 있음
+const reduceF = (total, t, f) => {
+    return t instanceof Promise ? 
+    t.then( t => f(total, t), e => e == nop ? total : Promise.reject(e)) : 
+    f(total, t);
+};
 
+const head = iter => isPromise(take(1, iter), ([h]) => h);
+
+
+const reduce = curry((func, total, iter) => {
+    if(!iter) return reduce(func, head(iter = total[Symbol.iterator]()), iter);
+
+    iter = iter[Symbol.iterator]();
     return isPromise(total, function recur(total) {
         let cur;
         while(!(cur = iter.next()).done){
-            const t = cur.value;
-            total = func(total, t);
+            total = reduceF(total, cur.value, func);
             if ( total instanceof Promise ) return total.then(recur);
         }
-
         return total;
     });
 });
@@ -132,21 +136,42 @@ L.range = function *(l){
     }
 };
 
+const nop = Symbol('nop');
+
 L.filter = curry(function *(f, iter) {
-    for (const a of iter) if (f(a)) yield a;
+    for (const a of iter) {
+        const b = isPromise(a, f);
+        if ( b instanceof Promise ){
+            /*
+                a 가 Promise인 경우에도 다른 곳에서 then으로 풀어서 쓸거니깐
+                정상값 외에 취소한것과 다름없는 값으로써 구분하겠다 라고 할거면 reject에 특정 값을
+                담아서 보낸다.
+            */
+            yield b.then( b => b ? a : Promise.reject(nop))
+        }else if (b) yield a
+    };
 });
 
 L.map = curry(function *(f, iter) {
-    for (const a of iter ) yield f(a);
+    for (const a of iter ) yield isPromise(a, f)
 });
 
 const take = curry((l, iter) => {
     let res = [];
-    for (const a of iter){
-        res.push(a);
-        if(res.length == l) return res;
-    }
-    return res;
+    iter = iter[Symbol.iterator]();
+    
+    return function recur(){
+        let cur;
+        while ( !(cur = iter.next()).done ){
+            const a = cur.value;
+            if ( a instanceof Promise ) {
+                return a.then(a => (res.push(a), res).length == l ? res : recur())
+                .catch(e => e == nop ? recur() : Promise.reject(e));
+            }
+            if ( (res.push(a), res).length == l ) return res
+        }
+        return res;
+    }();
 });
 
 const find = (f, iter) => go(

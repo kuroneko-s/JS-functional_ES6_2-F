@@ -70,6 +70,11 @@ C.reduce = curry((f, acc, iter) => {
 
 C.take = curry((l, iter) => take(l, catchNoop([...iter])))
 
+C.takeAll = C.take(Infinity);
+
+C.map = curry(pipe(L.map, C.takeAll));
+C.filter = curry(pipe(L.filter, C.takeAll));
+
 console.time('');
 
 const delay1000 = a => new Promise( resolve => {
@@ -77,13 +82,17 @@ const delay1000 = a => new Promise( resolve => {
     setTimeout( () => resolve(a), 1000 )
 });
 
-go([1,2,3,4,5,6,7,8,9],
-    L.map( a => delay1000( a * a )),
-    // L.map( a => new Promise( resolve => setTimeout( () => resolve(a), 1000))),
-    L.filter(a => delay1000(a % 2)),
-    L.map( a => delay1000( a * a )),
-    C.take(3),
-    C.reduce((a, b) => a + b),
-    log,
-    _ => console.timeEnd(''));
+// go([1,2,3,4,5,6,7,8,9],
+//     L.map( a => delay1000( a * a )),
+//     // L.map( a => new Promise( resolve => setTimeout( () => resolve(a), 1000))),
+//     L.filter(a => delay1000(a % 2)),
+//     L.map( a => delay1000( a * a )),
+//     C.take(3),
+//     C.reduce((a, b) => a + b),
+//     log,
+//     _ => console.timeEnd(''));
+
+C.map(a => delay1000(a * a), [1,2,3,4]).then(log);
+C.filter( a => delay1000(a % 2), [1,2,3,4,5,6]).then(log);
+
 </script>

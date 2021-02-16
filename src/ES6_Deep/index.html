@@ -1,0 +1,214 @@
+<script src="https://unpkg.com/fxjs/dist/fx.js"></script>
+
+<script>
+const log = console.log
+const { L, C } = window._;
+
+function f1(limit, iter){
+    _.go(
+        iter,
+        L.filter(a => a % 2),
+        L.map( a => a * a),
+        L.take(limit),
+        _.reduce( (acc, a) => acc + a)
+        // log
+    )
+}
+
+f1(3, [1,2,3,4,5,6,7,8,9,10])
+
+</script>
+
+<script>
+
+function f3(end){
+    let i = 0;
+    while( i < end ){
+        console.log(i);
+        i++;
+    }
+}
+
+// f3(10)
+</script>
+
+<script>
+// each, range
+// 순수영역과 사용되는 영역의 구분 - each
+// _.each(console.log, _.range(1, 10, 2))
+
+</script>
+
+<script>
+// for ( var i=1; i < 6; i ++ ){
+//     var str = ""
+//     for ( var j=0; j < i; j++){
+//         str += "*"
+//     }
+//     log(str)
+// }
+
+const join = cep => _.reduce( (a,b) => `${a}${cep}${b}`);
+
+_.go(
+    _.range(1, 6),
+    // _.map(_.range),
+    _.map(a => _.range(a)),
+    _.map( _ => _.map( _ => "*")),
+    // _.map( _.map( _ => "*") ),
+    _.map(join('')),
+    join('\n'),
+    log
+);
+
+_.go(
+    _.range(1, 6),
+    _.map(s => _.go(
+        _.range(s),
+        _.map( _ => "*"),
+        join('')
+    )),
+    join('\n'),
+    log
+);
+
+_.go(
+    _.range(2, 10),
+    _.map( a => _.go(
+        _.range(1, 10),
+        _.map( b => `${a}x${b} = ${a * b}`),
+        join('\n'),
+    )),
+    join('\n\n')
+    // log
+)
+
+</script>
+
+<script>
+
+const users = [
+    {name: "AA", age:15},
+    {name: "BB", age:30},
+    {name: "CC", age:40},
+    {name: "DD", age:55},
+    {name: "EE", age:45},
+    {name: "FF", age:83}
+]
+
+const add = (a, b) => a + b;
+
+log(_.reduce( ( total, u ) => total + u.age, 0, users));
+log(_.reduce( add, _.map( u => u.age, users)));
+log(_.reduce( (total, iter) => total + iter, _.filter( a => a >= 30, _.map( u => u.age, users))));
+</script>
+
+<script>
+const obj1 = {
+    a: 1,
+    b: undefined,
+    c: "CC",
+    d: "DD"
+}
+// a=1&c=CC&d=DD
+function queyr1(obj1) {
+    var res = "";
+    for ( const a in obj1 ){
+        let v = obj1[a];
+        if ( v == undefined ) continue;
+        if ( res != '' ) res += '&'
+        res = res + a + "=" + v
+    }
+    return res
+}
+log(queyr1(obj1))
+
+function queyr2(obj1) {
+    return Object
+        .entries(obj1)
+        .reduce( (query, [k, v], i) => {
+            // log('query - ', query, 'key - ', k, 'value - ', v, 'index - ', i)
+            if( v == undefined ) return query;
+            return `${query}${i > 0 ? '&' : ''}${k}=${v}`
+        }, '' )
+
+}
+log(queyr2(obj1))
+</script>
+
+<script>
+const join2 = _.curry((sep, iter) =>
+    _.reduce((a, b) => `${a}${sep}${b}`, iter))
+
+const query3 = obj1 =>
+        join2('&',
+            _.map(([k, v]) => `${k}=${v}`,
+                _.reject( ([_, v]) => v === undefined, Object.entries(obj1))))
+
+log(query3(obj1))
+</script>
+
+<script>
+const query4 = obj1 => _.go(
+    Object.entries(obj1),
+    L.reject( ([_, v]) => v === undefined ),
+    L.map( join2('=') ),
+    join2('&'),
+    log
+)
+
+query4(obj1)
+
+</script>
+
+<script>
+    // a=1&c=CC&d=DD
+    console.clear()
+    const split = _.curry((sep, str) => str.split(sep));
+    const query5 = str => _.go(
+        str,
+        split('&'),
+        // _.map(str => str.split('=')),
+        _.map(split('=')),
+        _.map(([k, v]) => ({ [k] : v })),
+        _.reduce(Object.assign),
+        log
+    )
+    
+    query5('a=1&c=CC&d=DD')
+    
+</script>
+<script>
+console.clear()
+const f = x => x + 10;
+const g = x => x - 5;
+const fg = x => f(g(x));
+
+console.log(fg()) // NaN
+
+_.go(
+    15,
+    L.map(fg),
+    _.each(log)
+)
+
+//모나드
+_.go(
+    [15],
+    L.map(fg),
+    _.each(console.log)
+)
+
+_.go(
+    [],
+    L.map(fg),
+    _.each(console.log)
+)
+</script>
+<script>
+console.clear()
+_.each(console.log,
+    L.take(1,
+        L.filter(u => u.name == 'BB', users)))
+
+</script>

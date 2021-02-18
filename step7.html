@@ -55,18 +55,19 @@ const C = {};
 const noop = function() {};
 const catchNoop = arr => 
     (arr.forEach( a => a instanceof Promise ? a.catch(noop) : a), arr);
+
 log('병렬처리')
-C.reduce = curry((f, acc, iter) => {
-    const iter2 = catchNoop(iter ? [...iter] : [...acc]);
+
     /*
         reject 이후에 catch를 별도로 달아서 에러 처리를 할 순 있지만
         쓸데없는 로그가 남는다.
         catch를 한 promise를 넘기면 이후에 catch를 또 못한다.
         catch만 걸어놓고 cathc를 동작시키진 않은채로 넘긴다.
     */
-    return iter ? reduce(f, acc, iter2) :
-    reduce(f, iter2);
-});
+C.reduce = curry((f, acc, iter) => iter ? 
+    reduce(f, acc, catchNoop(iter)) :
+    reduce(f, catchNoop(acc))
+);
 
 C.take = curry((l, iter) => take(l, catchNoop([...iter])))
 

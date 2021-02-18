@@ -1,8 +1,28 @@
 <script src="_.js"></script>
 <script>
-    
-Promise.resolve(1).then(console.log, e => console.log("error - ", e))
-Promise.reject(1).then(console.log, e => console.log("error - ", e))
-Promise.reject(1).then(console.log).catch(e => console.log('error - ', e))
+
+function delay(a){
+    return new Promise(resolve => setTimeout(() => resolve(a), 100));
+}
+
+async function f2() {
+    const list = [1,2,3,4,5];
+    const temp = list.map(async a => await delay(a * a));
+    log(temp);
+    const res = await temp;
+    log(res);
+}
+
+f2();
+
+async function f3(){
+    const list = [1,2,3,4,5];
+    const temp = map(a => delay(a * a), list);
+    log(temp);
+    const res = await temp;
+    log(res);
+}
+
+f3();
 
 </script>

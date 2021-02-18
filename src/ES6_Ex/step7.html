@@ -1,0 +1,98 @@
+<script src="_.js"></script>
+<script>
+
+go(Promise.resolve(1),
+    a => a + 100,
+    a => Promise.resolve(a + 100),
+    a => a + 200,
+    a => a + 300,
+    log
+)
+
+</script>
+
+<script>
+
+go([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)]
+, L.map(a => a + 10)
+, take(2)
+, log)
+
+go([1,2,3]
+, L.map(a => Promise.resolve(a + 10))
+, take(2)
+, log)
+
+go([1,2,3]
+, map(a => Promise.resolve(a + 10))
+, log)
+
+</script>
+
+<script>
+//Kleisli Composition
+go([1,2,3,4,5,6,7,8,9,10]
+, L.map( a => Promise.resolve(a * a))
+, filter(a =>  a % 2)
+, L.map( a => Promise.resolve(a * a))
+, take(4)
+, log);
+
+</script>
+
+<script>
+go(
+    [1,2,3,4,5],
+    L.map( a => Promise.resolve(a * a)),
+    L.filter(a => Promise.resolve(a % 2)),
+    reduce((a, b) => a + b),
+    log)
+
+</script>
+
+<script>
+const C = {};
+const noop = function() {};
+const catchNoop = arr => 
+    (arr.forEach( a => a instanceof Promise ? a.catch(noop) : a), arr);
+log('병렬처리')
+C.reduce = curry((f, acc, iter) => {
+    const iter2 = catchNoop(iter ? [...iter] : [...acc]);
+    /*
+        reject 이후에 catch를 별도로 달아서 에러 처리를 할 순 있지만
+        쓸데없는 로그가 남는다.
+        catch를 한 promise를 넘기면 이후에 catch를 또 못한다.
+        catch만 걸어놓고 cathc를 동작시키진 않은채로 넘긴다.
+    */
+    return iter ? reduce(f, acc, iter2) :
+    reduce(f, iter2);
+});
+
+C.take = curry((l, iter) => take(l, catchNoop([...iter])))
+
+C.takeAll = C.take(Infinity);
+
+C.map = curry(pipe(L.map, C.takeAll));
+C.filter = curry(pipe(L.filter, C.takeAll));
+
+console.time('');
+
+const delay1000 = a => new Promise( resolve => {
+    console.log('delay')
+    setTimeout( () => resolve(a), 1000 )
+});
+
+// go([1,2,3,4,5,6,7,8,9],
+//     L.map( a => delay1000( a * a )),
+//     // L.map( a => new Promise( resolve => setTimeout( () => resolve(a), 1000))),
+//     L.filter(a => delay1000(a % 2)),
+//     L.map( a => delay1000( a * a )),
+//     C.take(3),
+//     C.reduce((a, b) => a + b),
+//     log,
+//     _ => console.timeEnd(''));
+
+C.map(a => delay1000(a * a), [1,2,3,4]).then(log);
+C.filter( a => delay1000(a % 2), [1,2,3,4,5,6]).then(log);
+
+</script>

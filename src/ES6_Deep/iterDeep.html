@@ -1,0 +1,259 @@
+<script src="https://unpkg.com/fxjs/dist/fx.js"></script>
+
+<script>
+const log = console.log
+const { L, C } = window._;
+</script>
+
+<script>
+const obj1 = {
+    a: 1,
+    b: 2,
+    c: 3,
+    d: 4
+};
+</script>
+<script>
+//이터레이블화 하는 values
+L.values = function *(obj){
+    for ( const a in obj ){
+        yield obj[a];
+    }
+}
+
+_.go(
+    obj1,
+    L.values,
+    L.map(a => {
+        console.log(a); 
+        return a + 10;
+    }),
+    L.take(2),
+    _.reduce( (a, b) => a + b),
+    log
+)
+</script>
+<script>
+//이터레이블화 하는 entries
+console.clear()
+L.entries = function *(obj){
+    for ( const a in obj ){
+        yield [a, obj[a]];
+    }
+}
+
+_.go(
+    obj1,
+    L.entries,
+    L.filter( ([_, v]) => v % 2),
+    L.map( ([k, v]) => [k, v+10]),
+    _.each(log)
+)
+</script>
+<script>
+//이터레이블화 하는 keys
+console.clear()
+L.keys = function *(obj){
+    for ( const a in obj ){
+        yield a;
+    }
+}
+
+_.go(
+    obj1,
+    L.keys,
+    _.reduce( (acc, iter) => acc +' + '+ iter),
+    log
+)
+
+</script>
+
+<script>
+// [[a,1], [b,2], [c,3]] => {a:1, b:2, c:3}
+const obj = [['a',1], ['b',2], ['c',3]]
+// const object = entries => _.go(
+//     entries,
+//     L.map( ([k, v]) => ({[k] : v})),
+//     _.reduce( Object.assign )
+// )
+
+const object = entries => _.reduce(
+    (obj, [k, v]) => (obj[k] = v , obj)
+    , {} 
+    , entries
+)
+
+log( object(obj) )
+
+let m = new Map();
+m.set('a', 10)
+m.set('b', 20)
+m.set('c', 30)
+</script>
+
+<script>
+console.clear()
+const mapObject = (f, obj) => _.go(
+    obj, // {a: 1, b: 2, ...}
+    L.entries, // [[a, 1], [b, 2] ...]
+    L.map( ([k, v]) => ([k, f(v)]) ),
+    object
+)
+
+log(mapObject(a => a + 10, {'a':1, 'b':2, 'c':3}))
+
+</script>
+
+<script>
+console.clear()
+const obj2 = { a: 1, b:2, c:3, d:4, e:5};
+const contains = (arr, str) => {
+    for (const s of arr){
+        if ( str === s ) {
+            return true
+        }
+    }
+    return false
+}
+
+const pick = (r, obj) => _.go(
+    obj,
+    L.entries, // [[a,1], [b,2]...]
+    _.filter( ([k, v]) => contains(r, k)),
+    object
+)
+
+const pick2 = (ks, obj) => _.go(
+    ks,
+    _.map( k => [k, obj2[k]]),
+    _.filter( ([k, v]) => v != undefined ),
+    object
+)
+
+console.log(pick(['b', 'c'], obj2))
+log(pick2(['b', 'c', 'z'], obj2))
+
+</script>
+<script>
+console.clear()
+const users = [
+    {id:5, name: 'a', age: 15},
+    {id:15, name: 'b', age: 25},
+    {id:19, name: 'c', age: 35},
+    {id:22, name: 'a', age: 45},
+    {id:27, name: 'd', age: 55},
+    {id:35, name: 'e', age: 65},
+    {id:45, name: 'c', age: 75},
+];
+
+const indexBy = (f, obj) => _.reduce((acc, u) => (acc[f(u)] = u, acc), {}, users);
+
+// log(_.indexBy(u => u.name, users))
+
+const users2 = indexBy(u => u.age, users)
+log(users2)
+log(_.filter( u => u.age >= 30 , users2 ))
+
+_.go(
+    users2,
+    L.entries,
+    _.filter( ([_, {age}]) => age <= 40 ),
+    object,
+    log
+)
+</script>
+<script>
+console.clear()
+log(...m.values())
+let s = new Set();
+s.add(10)
+s.add(20)
+s.add(30)
+log(s)
+
+</script>
+<script>
+console.clear()
+class Model {
+    constructor(attrs = {}) {
+        this._attrs = attrs;
+    }
+    get(k) {
+        return this._attrs[k];
+    }
+    set(k, v){
+        this._attrs[k] = v
+        return this
+    }
+}
+
+class Collection{
+    constructor(models = []){
+        this._models = models;
+    }
+    at(idx){
+        return this._models[idx]
+    }
+    add(model){
+        this._models.push(model)
+        return this;
+    }
+    *[Symbol.iterator]() {
+        for (const model of this._models) {
+            yield model;
+        }
+        // yield *this._models 같음
+        // return this._models[Symbol.iterator]();
+    }
+}
+
+const coll = new Collection();
+coll.add(new Model({id:1, name: 'AA'}))
+coll.add(new Model({id:3, name: 'BB'}))
+coll.add(new Model({id:5, name: 'CC'}))
+// log(coll.at(2).get('name'))
+
+_.go(
+    coll,
+    L.map( m => m.get('name')),
+    _.each(log)
+)
+</script>
+<script>
+    console.clear()
+    class Product extends Model{
+
+    }
+    class Products extends Collection{
+        totalPrice(){
+            // let total = 0
+            // this._models.forEach( product => {
+            //     total += product.get('price');
+            // });
+            // return total;
+            return _.go(
+                this,
+                L.map( p => p.get('price')),
+                _.reduce( (a, b) => a + b)
+            )
+        }
+    }
+
+    const products = new Products();
+    products.add(new Product({ id: 1, name: 'A', price: 10000 }))
+    log(products.totalPrice())
+
+    products.add(new Product({ id: 2, name: 'B', price: 15000 }))
+    log(products.totalPrice())
+
+    products.add(new Product({ id: 5, name: 'C', price: 25000 }))
+    log(products.totalPrice())
+    
+</script>
+
+<script>
+_.delay(5000, 5).then(log)
+</script>
+<script>
+    
+</script>
